@@ -1,231 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Weather Update - Iligan City</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: Arial, sans-serif;
-            background-image: url('111222.gif');
-            background-size: cover;
-            background-position: center;
-            color: #333;
-            text-align: center;
-            min-height: 100vh;
-            margin: 0;
-        }
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Weather Update</title>
+		<style>
+			body {
+				font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif,
+					sans-serif;
+				background-color: transparent;
+				color: #ffffff;
+				text-align: center;
+				background: url('111222.gif') no-repeat center center fixed;
+				background-size: 100%;
+				background-repeat: no-repeat;
+			}
+			#weather {
+				margin-top: 20px;
+				padding: 20px;
+				border-radius: 5px;
+				box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+				display: inline-block;
+				width: 80%;
+			}
+			.day {
+				display: inline-block;
+				width: 10%;
+				margin: 10px;
+				padding: 10px;
+				background-color: #83d8ff21;
+				border-radius: 5px;
+				box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+				text-align: center;
+			}
+			.day img {
+				width: 60px;
+				height: auto;
+			}
+			h1 {
+				color: rgb(0, 204, 255);
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Weather Update</h1>
+		<form>
+			<input type="text" id="city" placeholder="Enter city name" />
+			<button type="submit">Search Weather</button>
+		</form>
+		<div id="weather">
+			<p>Loading weather data...</p>
+		</div>
+		<script>
+			const apiKey = '76ba22c935ba4d5aa2460823242108';
+			const apiEndpoint = `https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=`;
 
-        .search-container {
-            position: relative;
-            width: 100%;
-            height: 55px;
-            margin-bottom: 20px;
-        }
+			document.addEventListener('DOMContentLoaded', function () {
+				const form = document.querySelector('form');
+				form.addEventListener('submit', async function (event) {
+					event.preventDefault();
+					const cityName = document.getElementById('city').value.trim();
+					if (cityName) {
+						try {
+							const response = await fetch(`${apiEndpoint}${cityName}&days=7`);
+							const weatherData = await response.json();
+							console.log(weatherData);
 
-        .search-container input {
-            padding: 0 48px 0 42px;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.5);
-            font-size: 17px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            outline: none;
-            color: #333;
-            font-weight: 500;
-            text-transform: uppercase;
-            backdrop-filter: blur(10px);
-        }
+							const weatherContainer = document.getElementById('weather');
+							const currentData = weatherData.current;
+							const forecastDays = weatherData.forecast.forecastday;
 
-        .search-container input::placeholder {
-            color: black;
-            text-transform: capitalize;
-        }
+							weatherContainer.innerHTML = `
+                <h2>${cityName}</h2>
+                <p><strong>${cityName} Weather Forecast</p>
+                <p><strong>Weekly Weather Tracker</p>
+                <p><strong>Look at the sky every day and use the elements below to record the weather each day.</p>
+              `;
 
-        .search-container button {
-            position: flex;
-            background: transparent;
-            border: none;
-            width: 10px;
-            height: 10px;
-            right: 0;
-            top: 0;
-            cursor: pointer;
-            padding: 0;
-        }
+							forecastDays.forEach((day) => {
+								const date = new Date(day.date).toLocaleDateString('en-US', {
+									weekday: 'long',
+								});
+								const temperatureInCelsius = day.day.avgtemp_c;
+								const weatherDescription = day.day.condition.text;
+								const iconUrl = day.day.condition.icon;
 
-        .weather-box {
-            width: 400px;
-            height: 555px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            padding: 20px;
-            color: white;
-            margin: 0 auto;
-        }
-
-        .weather-box img {
-            width: 60%;
-            margin-bottom: 20px;
-        }
-
-        .weather-box .temperature {
-            font-size: 64px;
-            font-weight: 700;
-            margin: 20px 0;
-        }
-
-        .weather-box .temperature span {
-            font-size: 24px;
-        }
-
-        .weather-box .description {
-            font-size: 22px;
-            font-weight: 500;
-        }
-
-        .weather-details {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            border-radius: 10px;
-        }
-
-        .weather-details .humidity, .weather-details .wind {
-            display: flex;
-            align-items: center;
-        }
-
-        .weather-details i {
-            font-size: 56px;
-            margin-right: 10px;
-        }
-
-        .weather-details span {
-            font-size: 22px;
-            font-weight: 500;
-        }
-
-        .weather-details p {
-            font-size: 14px;
-            font-weight: 500;
-        }
-    </style>
-</head>
-<body>
-    <h1>Weather Update</h1>
-    <div id="weather">
-        <div class="search-container">
-            <input type="text" placeholder="Enter city name" spellcheck="false">
-            <button><img src="search.png" alt="Search"></button>
-        </div>
-        <div class="weather-box">
-            <div class="box">
-                <div class="info-weather">
-                    <div class="weather">
-                        <img id="weather-icon" src="clear.png" alt="Weather Icon">                      
-                        <p class="temperature">16<span>°C</span></p>
-                        <p class="description">Broken Clouds</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="weather-details">
-            <div class="humidity">
-                <i><img src="humidity.png" alt="Humidity Icon"></i>
-                <div class="text">
-                    <div class="info-humidity">
-                        <span>0%</span>
-                    </div>
-                    <p>Humidity</p>
-                </div>
-            </div>
-            <div class="wind">
-                <i><img src="wind.png" alt="Wind Speed Icon"></i>
-                <div class="text">
-                    <div class="info-wind">
-                        <span>0 km/h</span>
-                    </div>
-                    <p>Wind Speed</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const weatherIcon = document.getElementById('weather-icon');
-            const searchButton = document.querySelector('.search-container button');
-            const weatherBox = document.querySelector('.weather-box');
-            const weatherDetails = document.querySelector('.weather-details');
-            const temperatureElement = document.querySelector('.weather-box .temperature');
-            const descriptionElement = document.querySelector('.weather-box .description');
-            const humidityElement = document.querySelector('.weather-details .humidity span');
-            const windElement = document.querySelector('.weather-details .wind span');
-
-            searchButton.addEventListener('click', async () => {
-                const APIKey = '76ba22c935ba4d5aa2460823242108';
-                const cityName = document.querySelector('.search-container input').value;
-
-                if (!cityName) {
-                    alert('Please enter a city name');
-                    return;
-                }
-
-                const apiEndpoint = `https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${cityName}&days=3`;
-
-                try {
-                    const response = await fetch(apiEndpoint);
-                    if (!response.ok) {
-                        throw new Error('City not found');
-                    }
-                    const weatherData = await response.json();
-                    console.log(weatherData);
-
-                    const weatherCondition = weatherData.current.condition.text;
-                    const temperature = weatherData.current.temp_c;
-                    const humidity = weatherData.current.humidity;
-                    const windSpeed = weatherData.current.wind_kph;
-
-                    switch (weatherCondition) {
-                        case 'Clear':
-                            weatherIcon.src = 'clear.png';
-                            break;
-                        case 'Rain':
-                            weatherIcon.src = 'rain.png';
-                            break;
-                        case 'Mist':
-                            weatherIcon.src = 'mist.png';
-                            break;
-                        case 'Overcast':
-                            weatherIcon.src = 'overcast.png';
-                        case 'Sun':
-                            weatherIcon.src = 'sun.png';
-                        case 'Sunny':
-                            weatherIcon.src = 'sunny.png';                      
-                        default:
-                            weatherIcon.src = 'cloud.png';
-                    }
-
-                    temperatureElement.innerHTML = `${parseInt(temperature)}<span>°C</span>`;
-                    descriptionElement.textContent = weatherCondition;
-                    humidityElement.textContent = `${parseInt(humidity)}%`;
-                    windElement.textContent = `${parseInt(windSpeed)} km/h`;
-
-                    weatherBox.classList.add('active');
-                    weatherDetails.classList.add('active');
-                } catch (error) {
-                    console.error('Error fetching weather data:', error);
-                    alert('Unable to fetch weather data. Please try again.');
-                }
-            });
-        });
-    </script>
-</body>
+								const dayDiv = document.createElement('div');
+								dayDiv.className = 'day';
+								dayDiv.innerHTML = `
+                  <h3>${date}</h3>
+                  <img src="https:${iconUrl}" alt="${weatherDescription}" />
+                  <p><strong>Temperature:</strong> ${temperatureInCelsius}°C</p>
+                  <p><strong>Weather:</strong> ${weatherDescription}</p>
+                  <p><strong>Humidity:</strong> ${day.day.avghumidity}%</p>
+                `;
+								weatherContainer.appendChild(dayDiv);
+							});
+						} catch (error) {
+							const weatherContainer = document.getElementById('weather');
+							weatherContainer.innerHTML = `<p>Unable to retrieve weather data: ${error.message}</p>`;
+						}
+					} else {
+						alert('Please enter a city name');
+					}
+				});
+			});
+		</script>
+	</body>
 </html>
